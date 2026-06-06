@@ -23,11 +23,11 @@ export function TaskForm({ task }: TaskFormProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const requiredMissing = useMemo(
+  const missingRequiredLabels = useMemo(
     () =>
-      task.fields.some(
-        (field) => field.required && values[field.id].trim().length === 0,
-      ),
+      task.fields
+        .filter((field) => field.required && values[field.id].trim().length === 0)
+        .map((field) => field.label),
     [task.fields, values],
   );
 
@@ -235,6 +235,12 @@ export function TaskForm({ task }: TaskFormProps) {
         })}
       </div>
 
+      {missingRequiredLabels.length > 0 ? (
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Complete the required fields to submit: {missingRequiredLabels.join(", ")}.
+        </div>
+      ) : null}
+
       {error ? (
         <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -249,7 +255,7 @@ export function TaskForm({ task }: TaskFormProps) {
 
       <button
         type="submit"
-        disabled={isSubmitting || requiredMissing}
+        disabled={isSubmitting}
         className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
       >
         {isSubmitting ? "Submitting…" : task.submitLabel ?? "Submit"}

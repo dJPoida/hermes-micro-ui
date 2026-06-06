@@ -103,7 +103,7 @@ const demoTask: TaskDefinition = {
   ],
   submitLabel: "Send response back to agent",
   successMessage:
-    "Response captured. Wire this submission to a webhook, queue, or cron pickup so the agent can resume automatically.",
+    "Response captured. If a continuation webhook is configured, Hermes can resume automatically from here.",
 };
 
 const taskMap = new Map<string, TaskDefinition>([[demoTask.id, demoTask]]);

@@ -37,6 +37,7 @@ assistant.
 - Submit endpoint: `POST /api/tasks/:taskId/submit`
 - Configurable branding via environment variables
 - Mock in-memory storage adapter that can be replaced later
+- Optional signed webhook dispatch on submit for Hermes continuation
 
 ## Branding / personality
 
@@ -50,6 +51,7 @@ cp .env.example .env.local
 
 Available variables:
 
+Public branding:
 - `NEXT_PUBLIC_MICRO_UI_NAME`
 - `NEXT_PUBLIC_ASSISTANT_NAME`
 - `NEXT_PUBLIC_MICRO_UI_TAGLINE`
@@ -59,6 +61,12 @@ Available variables:
 - `NEXT_PUBLIC_MICRO_UI_SURFACE`
 - `NEXT_PUBLIC_MICRO_UI_SURFACE_MUTED`
 - `NEXT_PUBLIC_MICRO_UI_ACCENT`
+
+Optional Hermes continuation webhook:
+- `HERMES_SUBMISSION_WEBHOOK_URL`
+- `HERMES_SUBMISSION_WEBHOOK_SECRET`
+- `HERMES_SUBMISSION_EVENT_TYPE` (defaults to `task.submitted`)
+- `HERMES_SUBMISSION_SOURCE` (defaults to `hermes-micro-ui`)
 
 Example TARS-flavoured deployment:
 
@@ -111,9 +119,9 @@ Planned upgrade paths:
 
 1. Replace the in-memory task store with a durable backend.
 2. Add signed task tokens and expiry validation.
-3. Add webhook delivery so Hermes resumes automatically after submit.
-4. Introduce workflow adapters that map external systems into the generic task schema.
-5. Add a first concrete adapter, e.g. YNAB reconciliation, without changing the core app identity.
+3. Add a first concrete workflow adapter, e.g. YNAB reconciliation, without changing the core app identity.
+4. Introduce richer workflow adapters that map external systems into the generic task schema.
+5. Add delivery observability / retry handling around webhook continuation.
 
 ## Vercel POC deployment
 
@@ -142,6 +150,13 @@ For a family-facing TARS deployment, configure these in Vercel:
 - `NEXT_PUBLIC_MICRO_UI_SURFACE_MUTED=#1f2937`
 - `NEXT_PUBLIC_MICRO_UI_ACCENT=#22c55e`
 
+To enable automatic Hermes continuation after submit, also set:
+
+- `HERMES_SUBMISSION_WEBHOOK_URL`
+- `HERMES_SUBMISSION_WEBHOOK_SECRET`
+- `HERMES_SUBMISSION_EVENT_TYPE=task.submitted`
+- `HERMES_SUBMISSION_SOURCE=hermes-micro-ui`
+
 ### Post-deploy smoke tests
 
 Once deployed, verify these URLs:
@@ -168,6 +183,6 @@ npx vercel --prod
 
 ## Notes
 
-This is a POC shell. The submit endpoint currently normalizes and stores
-responses in process memory only. That is enough to validate the UX and
-payload design, but not enough for production durability.
+This is still a POC shell. Task storage remains in process memory, but the submit
+endpoint now supports signed webhook dispatch so Hermes can resume automatically
+when `HERMES_SUBMISSION_WEBHOOK_*` variables are configured.

@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { dispatchTaskSubmission } from "@/lib/submission-dispatch";
 import { taskStore } from "@/lib/task-store";
 
 interface SubmitBody {
@@ -7,7 +8,7 @@ interface SubmitBody {
 }
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   context: RouteContext<"/api/tasks/[taskId]/submit">,
 ) {
   const { taskId } = await context.params;
@@ -45,11 +46,36 @@ export async function POST(
     answers: normalizedAnswers,
   });
 
+  const dispatch = await dispatchTaskSubmission({
+    task,
+    submission,
+    context: {
+      origin: request.nextUrl.origin,
+      taskUrl: `${request.nextUrl.origin}/t/${taskId}`,
+      submitUrl: request.nextUrl.href,
+    },
+  });
+
+  if (dispatch.attempted && !dispatch.ok) {
+    return NextResponse.json(
+      {
+        error: "Submission was stored, but webhook dispatch failed.",
+        submission,
+        dispatch,
+      },
+      { status: dispatch.status ?? 502 },
+    );
+  }
+
+  const message = dispatch.attempted
+    ? task.successMessage ?? "Response captured and handed back to Hermes."
+    : task.successMessage ??
+      "Response captured. Set a webhook destination to resume Hermes automatically.";
+
   return NextResponse.json({
     ok: true,
-    message:
-      task.successMessage ??
-      "Submission stored. Replace this response with webhook dispatch or queue handoff.",
+    message,
     submission,
+    dispatch,
   });
 }
