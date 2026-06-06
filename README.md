@@ -115,18 +115,56 @@ Planned upgrade paths:
 4. Introduce workflow adapters that map external systems into the generic task schema.
 5. Add a first concrete adapter, e.g. YNAB reconciliation, without changing the core app identity.
 
-## GitHub + Vercel bootstrap
+## Vercel POC deployment
 
-If you have GitHub CLI installed and authenticated:
+This repo is now on GitHub:
+
+- `https://github.com/dJPoida/hermes-micro-ui`
+
+For the first milestone, the goal is simple:
+- deploy the app
+- open the landing page from a WhatsApp link
+- open the sample task page
+- submit the sample form
+- verify the health endpoint responds
+
+### Required Vercel environment variables
+
+For a family-facing TARS deployment, configure these in Vercel:
+
+- `NEXT_PUBLIC_MICRO_UI_NAME=Hermes Micro UI`
+- `NEXT_PUBLIC_ASSISTANT_NAME=TARS`
+- `NEXT_PUBLIC_MICRO_UI_TAGLINE=Temporary interfaces for decisions that should not happen in chat.`
+- `NEXT_PUBLIC_MICRO_UI_AVATAR_GLYPH=◉`
+- `NEXT_PUBLIC_MICRO_UI_PRIMARY=#6d28d9`
+- `NEXT_PUBLIC_MICRO_UI_PRIMARY_SOFT=#ede9fe`
+- `NEXT_PUBLIC_MICRO_UI_SURFACE=#111827`
+- `NEXT_PUBLIC_MICRO_UI_SURFACE_MUTED=#1f2937`
+- `NEXT_PUBLIC_MICRO_UI_ACCENT=#22c55e`
+
+### Post-deploy smoke tests
+
+Once deployed, verify these URLs:
+
+- `/`
+- `/t/demo-human-loop`
+- `/api/tasks/demo-human-loop`
+- `/api/health`
+
+Expected behavior:
+- landing page loads
+- sample task page loads
+- task API returns JSON
+- health API returns JSON with `ok: true`
+
+### Deploy options
+
+1. Import the GitHub repo into Vercel UI
+2. Or deploy with CLI once `VERCEL_TOKEN` is available to the shell environment:
 
 ```bash
-git init
-git add .
-git commit -m "feat: initial hermes micro ui scaffold"
-gh repo create hermes-micro-ui --private --source . --remote origin --push
+npx vercel --prod
 ```
-
-Then import the repo into Vercel and set the branding variables for your deployment.
 
 ## Notes
 
