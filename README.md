@@ -63,10 +63,12 @@ Public branding:
 - `NEXT_PUBLIC_MICRO_UI_ACCENT`
 
 Optional Hermes continuation webhook:
-- `HERMES_SUBMISSION_WEBHOOK_URL`
+- `HERMES_SUBMISSION_WEBHOOK_URL` — point every Micro UI task at the same Hermes webhook route (for example `/webhooks/micro-ui-submit`)
 - `HERMES_SUBMISSION_WEBHOOK_SECRET`
 - `HERMES_SUBMISSION_EVENT_TYPE` (defaults to `task.submitted`)
 - `HERMES_SUBMISSION_SOURCE` (defaults to `hermes-micro-ui`)
+
+The intended operating model is one generic webhook route for the whole Micro UI deployment. New task pages, forms, or workflow adapters should change the task payload, not require new Hermes webhook routes or prompt rewrites.
 
 Example TARS-flavoured deployment:
 
@@ -103,6 +105,23 @@ Open `http://localhost:3000`.
 ### API
 - `src/app/api/tasks/[taskId]/route.ts`
 - `src/app/api/tasks/[taskId]/submit/route.ts`
+- `src/lib/submission-dispatch.ts` — signs and posts every task submission to one generic Hermes continuation webhook
+
+### Single-webhook continuation contract
+
+The app-side contract is intentionally generic:
+- every task submits through the same in-app path: `POST /api/tasks/[taskId]/submit`
+- the server-side submit handler forwards to one Hermes webhook URL from `HERMES_SUBMISSION_WEBHOOK_URL`
+- the webhook payload contains the full task, the raw answers map, and `resolved_answers` with field labels/kinds/values so Hermes can understand new task types without route-specific config changes
+
+That means new dynamic UIs should differ by task payload only:
+- task title/summary
+- workflow type
+- sections
+- fields
+- answers
+
+not by Hermes webhook route.
 
 ## Why the store is mocked
 
@@ -152,10 +171,12 @@ For a family-facing TARS deployment, configure these in Vercel:
 
 To enable automatic Hermes continuation after submit, also set:
 
-- `HERMES_SUBMISSION_WEBHOOK_URL`
+- `HERMES_SUBMISSION_WEBHOOK_URL=https://.../webhooks/micro-ui-submit`
 - `HERMES_SUBMISSION_WEBHOOK_SECRET`
 - `HERMES_SUBMISSION_EVENT_TYPE=task.submitted`
 - `HERMES_SUBMISSION_SOURCE=hermes-micro-ui`
+
+Only this one webhook route should be needed for Micro UI submissions. Future UI workflows should reuse the same callback URL and rely on the task payload plus `resolved_answers` to tell Hermes what happened.
 
 ### Post-deploy smoke tests
 

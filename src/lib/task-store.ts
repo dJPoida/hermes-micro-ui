@@ -2,108 +2,61 @@ import { TaskDefinition, TaskSubmission } from "@/types/task";
 
 const demoTask: TaskDefinition = {
   id: "demo-human-loop",
-  title: "Validate an agent handoff",
+  title: "Favourite AFL team check",
   summary:
-    "A generic example task showing how an agent can collect structured human feedback through a temporary web UI instead of chat.",
+    "A live test of the ephemeral UI handoff: answer one simple question in the web UI and let Hermes confirm the answer back in WhatsApp.",
   assistantName: "TARS",
+  workflowType: "demo.favorite-afl-team",
   status: "pending",
   instructions: [
-    "Review the evidence blocks below.",
-    "Choose the next action from the structured form.",
-    "Submit once so the agent can continue the workflow automatically.",
+    "Answer the question in the structured form below.",
+    "Submit once so Hermes can continue the workflow automatically in WhatsApp.",
   ],
   expiresAt: "2026-12-31T23:59:59.000Z",
   sections: [
     {
       kind: "callout",
-      title: "Why this exists",
+      title: "Live handoff test",
       body:
-        "Some workflows are painful in chat. Hermes Micro UI provides an ephemeral surface for approvals, triage, reconciliation, and rich evidence review.",
+        "This task checks whether the Micro UI can collect a simple answer and hand it back to Hermes through the webhook continuation path.",
       tone: "info",
     },
     {
       kind: "facts",
-      title: "Context",
+      title: "What should happen",
       items: [
-        { label: "Workflow type", value: "Human-in-the-loop checkpoint" },
-        { label: "Created by", value: "Hermes agent" },
-        { label: "Frontend target", value: "Mobile-first web UI" },
-        { label: "Backend mode", value: "Mock in-memory adapter" },
-      ],
-    },
-    {
-      kind: "table",
-      title: "Evidence items",
-      columns: ["Item", "Question", "Notes"],
-      rows: [
-        [
-          "Branding",
-          "Should the UI refer to itself as TARS?",
-          "Configurable per deployment via environment variables.",
-        ],
-        [
-          "Payload rendering",
-          "Can one schema drive many one-off UIs?",
-          "This starter renders sections and fields from typed task data.",
-        ],
-        [
-          "Submission path",
-          "Can structured answers flow back to Hermes?",
-          "The submit API returns a normalized payload ready for webhook or queue integration.",
-        ],
+        { label: "Question", value: "Who is your favourite AFL football team?" },
+        { label: "Input style", value: "Single free-text answer" },
+        { label: "Expected result", value: "Hermes confirms the answer back in WhatsApp" },
+        { label: "Backend mode", value: "Mock in-memory task + webhook continuation" },
       ],
     },
     {
       kind: "prose",
-      title: "Next step",
+      title: "Success criteria",
       body:
-        "Once this generic shell is validated, a future task adapter can render YNAB reconciliation data without changing the app's core identity.",
+        "If the flow is operational, you can answer in the UI, submit the form, and Hermes will confirm your favourite AFL team back in this chat.",
     },
   ],
   fields: [
     {
-      id: "decision",
-      kind: "radio",
-      label: "What should the agent do next?",
-      required: true,
-      options: [
-        {
-          label: "Proceed to add a concrete workflow adapter",
-          value: "build-adapter",
-          description: "Use this once the generic shell feels right.",
-        },
-        {
-          label: "Refine the generic UX shell first",
-          value: "refine-shell",
-          description: "Use this if layout, branding, or schema shape still needs work.",
-        },
-      ],
-    },
-    {
-      id: "tone",
-      kind: "select",
-      label: "Preferred personality for this deployment",
-      required: true,
-      placeholder: "Pick a tone",
-      options: [
-        { label: "TARS / direct and witty", value: "tars" },
-        { label: "Neutral operator", value: "neutral" },
-        { label: "Warm concierge", value: "warm" },
-      ],
-    },
-    {
       id: "notes",
       kind: "textarea",
-      label: "Extra instructions",
+      label: "Who is your favourite AFL football team?",
+      required: true,
       helpText:
-        "Use this for anything the agent should remember when continuing the workflow.",
-      placeholder: "Example: keep this generic; don't hard-code finance assumptions.",
-      minLength: 0,
+        "Type the team name exactly how you want Hermes to repeat it back in WhatsApp.",
+      placeholder: "Example: Collingwood",
+      minLength: 1,
     },
   ],
-  submitLabel: "Send response back to agent",
+  metadata: {
+    demo: "true",
+    response_contract: "single-generic-webhook",
+  },
+  submitLabel: "Send answer back to Hermes",
   successMessage:
-    "Response captured. If a continuation webhook is configured, Hermes can resume automatically from here.",
+    "Answer captured. If the continuation webhook is working, Hermes will confirm it back in WhatsApp.",
 };
 
 const taskMap = new Map<string, TaskDefinition>([[demoTask.id, demoTask]]);

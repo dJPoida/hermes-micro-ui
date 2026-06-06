@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 
-import { TaskDefinition, TaskSubmission } from "@/types/task";
+import { TaskDefinition, TaskField, TaskSubmission } from "@/types/task";
 
 interface DispatchContext {
   origin: string;
@@ -22,11 +22,20 @@ export interface DispatchResult {
   error?: string;
 }
 
+interface ResolvedAnswer {
+  field_id: string;
+  field_kind: TaskField["kind"];
+  label: string;
+  value: string;
+  required: boolean;
+}
+
 interface SubmissionWebhookPayload {
   event_type: string;
   source: string;
   task: TaskDefinition;
   submission: TaskSubmission;
+  resolved_answers: ResolvedAnswer[];
   context: DispatchContext;
 }
 
@@ -51,6 +60,19 @@ function getWebhookConfig() {
   return { url, secret, eventType, source };
 }
 
+function buildResolvedAnswers(
+  task: TaskDefinition,
+  submission: TaskSubmission,
+): ResolvedAnswer[] {
+  return task.fields.map((field) => ({
+    field_id: field.id,
+    field_kind: field.kind,
+    label: field.label,
+    value: submission.answers[field.id] ?? "",
+    required: Boolean(field.required),
+  }));
+}
+
 export async function dispatchTaskSubmission({
   task,
   submission,
@@ -67,6 +89,7 @@ export async function dispatchTaskSubmission({
     source: config.source,
     task,
     submission,
+    resolved_answers: buildResolvedAnswers(task, submission),
     context,
   };
 

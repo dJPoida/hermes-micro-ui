@@ -67,9 +67,11 @@ export interface TaskDefinition {
   assistantName: string;
   instructions: string[];
   status: TaskStatus;
+  workflowType?: string;
   expiresAt?: string;
   sections: TaskSection[];
   fields: TaskField[];
+  metadata?: Record<string, string>;
   submitLabel?: string;
   successMessage?: string;
 }
